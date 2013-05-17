@@ -38,7 +38,9 @@
     AudioStreamBasicDescription   _audioDescription;
     volatile int32_t              _playhead;
 }
-@property (nonatomic, retain, readwrite) NSURL *url;
+
+- (void)loadurl:(NSURL*)url error:(NSError**)error;
+
 @end
 
 @implementation AEAudioFilePlayer
@@ -51,6 +53,11 @@
     player->_volume = 1.0;
     player->_channelIsPlaying = YES;
     player->_audioDescription = audioController.audioDescription;
+
+    [player loadurl:url error:error];
+
+	// moved to loadurl
+/*
     player.url = url;
     
     AEAudioFileLoaderOperation *operation = [[AEAudioFileLoaderOperation alloc] initWithFileURL:url targetAudioDescription:player->_audioDescription];
@@ -68,7 +75,7 @@
     player->_lengthInFrames = operation.lengthInFrames;
     
     [operation release];
-    
+*/    
     return player;
 }
 
@@ -82,6 +89,49 @@
         free(_audio);
     }
     [super dealloc];
+}
+
+- (void)loadurl:(NSURL*)url error:(NSError**)error
+{
+    BOOL wasplaying = _channelIsPlaying;
+	 _channelIsPlaying = NO;
+
+    _url = nil;
+    self.completionBlock = nil;
+    if ( _audio ) {
+        for ( int i=0; i<_audio->mNumberBuffers; i++ ) {
+            free(_audio->mBuffers[i].mData);
+        }
+        free(_audio);
+       _audio = nil;
+    }
+
+    if(url) {
+		 _url = url;
+		 
+		 AEAudioFileLoaderOperation *operation = [[AEAudioFileLoaderOperation alloc] initWithFileURL:_url targetAudioDescription:_audioDescription];
+		 [operation start];
+	 
+       if ( operation.error ) {
+          if ( error ) {
+             *error = [[operation.error retain] autorelease];
+          }
+          [operation release];
+          return;
+       }
+		 
+		 _audio = operation.bufferList;
+		 _lengthInFrames = operation.lengthInFrames;
+		 _playhead = 0L;
+		 
+		 [operation release];
+
+		 _channelIsPlaying = wasplaying;
+    }
+}
+
+-(void)setUrl:(NSURL *)url {
+	[self loadurl:url error:nil];
 }
 
 -(NSTimeInterval)duration {

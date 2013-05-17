@@ -46,7 +46,7 @@
  */
 + (id)audioFilePlayerWithURL:(NSURL*)url audioController:(AEAudioController*)audioController error:(NSError**)error;
 
-@property (nonatomic, retain, readonly) NSURL *url;         //!< Original media URL
+@property (nonatomic, retain, readwrite) NSURL *url;        //!< Original media URL (get or set)
 @property (nonatomic, readonly) NSTimeInterval duration;    //!< Length of audio, in seconds
 @property (nonatomic, assign) NSTimeInterval currentTime;   //!< Current playback position, in seconds
 @property (nonatomic, readwrite) BOOL loop;                 //!< Whether to loop this track
