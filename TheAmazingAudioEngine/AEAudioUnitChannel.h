@@ -23,6 +23,10 @@
 //  3. This notice may not be removed or altered from any source distribution.
 //
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #import <Foundation/Foundation.h>
 #import "TheAmazingAudioEngine.h"
 
@@ -46,6 +50,21 @@
  */
 - (id)initWithComponentDescription:(AudioComponentDescription)audioComponentDescription
                    audioController:(AEAudioController*)audioController
+                             error:(NSError**)error;
+
+/*!
+ * Create a new Audio Unit channel, with a block to run before initialization of the unit 
+ *
+ * @param audioComponentDescription The structure that identifies the audio unit
+ * @param audioController The audio controller
+ * @param preInitializeBlock A block to run before the audio unit is initialized.
+ *              This can be used to set some properties that needs to be set before the unit is initialized.
+ * @param error On output, if not NULL, will point to an error if a problem occurred
+ * @return The initialised channel
+ */
+- (id)initWithComponentDescription:(AudioComponentDescription)audioComponentDescription
+                   audioController:(AEAudioController*)audioController
+                preInitializeBlock:(void(^)(AudioUnit audioUnit))block
                              error:(NSError**)error;
 
 /*!
@@ -88,3 +107,7 @@
 @property (nonatomic, readonly) AUNode audioGraphNode;
 
 @end
+
+#ifdef __cplusplus
+}
+#endif

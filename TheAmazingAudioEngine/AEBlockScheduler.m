@@ -68,6 +68,11 @@ struct _schedule_t {
     return (timestamp - mach_absolute_time()) * __hostTicksToSeconds;
 }
 
++ (uint64_t)timestampWithSeconds:(NSTimeInterval)seconds fromTimestamp:(uint64_t)timeStamp
+{
+    return (timeStamp + (seconds * __secondsToHostTicks));
+}
+
 - (id)initWithAudioController:(AEAudioController *)audioController {
     if ( !(self = [super init]) ) return nil;
     
@@ -144,7 +149,7 @@ struct _schedule_t {
         for ( int i=0; i<scheduleCount; i++ ) {
             memset(pointers_array[i], 0, sizeof(struct _schedule_t));
             if ( (pointers_array[i] - _schedule) == _tail ) {
-                while ( !_schedule[_tail].block ) {
+                while ( !_schedule[_tail].block && _tail != _head ) {
                     _tail = (_tail + 1) % kMaximumSchedules;
                 }
             }
@@ -217,7 +222,7 @@ static void timingReceiver(id                        receiver,
                                                                  sizeof(struct _timingReceiverFinishSchedule_t));
             memset(&THIS->_schedule[i], 0, sizeof(struct _schedule_t));
             if ( i == THIS->_tail ) {
-                while ( !THIS->_schedule[THIS->_tail].block ) {
+                while ( !THIS->_schedule[THIS->_tail].block && THIS->_tail != THIS->_head ) {
                     THIS->_tail = (THIS->_tail + 1) % kMaximumSchedules;
                 }
             }
